@@ -1,24 +1,24 @@
 {
-  "name": "mmm-googledriveslideshow",
-  "version": "0.0.1",
+  "name": "MMM-GoogleDriveSlideShow",
+  "version": "1.0.0",
   "private": true,
   "description": "MagicMirror² Module to display photos stored in Google Drive as a slideshow",
-  "main": "MMM-GoogeDriveSlideShow.js",
+  "main": "MMM-GoogleDriveSlideShow.js",
   "scripts": {
     "token:generate": "node generate-auth-token.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clegallic/MMM-GoogeDriveSlideShow.git"
+    "url": "git+https://github.com/angeldeejay/MMM-GoogleDriveSlideShow.git"
   },
-  "author": "Charles Le Gallic",
+  "author": "Andres Vanegas",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/clegallic/MMM-GoogeDriveSlideShow/issues"
+    "url": "https://github.com/angeldeejay/MMM-GoogleDriveSlideShow/issues"
   },
-  "homepage": "https://github.com/clegallic/MMM-GoogeDriveSlideShow#readme",
-  "devDependencies": {},
+  "homepage": "https://github.com/angeldeejay/MMM-GoogleDriveSlideShow#readme",
   "dependencies": {
-    "googleapis": "^47.0.0"
+    "googleapis": "^171.4.0",
+    "jsonschema": "^1.5.0"
   }
 }
