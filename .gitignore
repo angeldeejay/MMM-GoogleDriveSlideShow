@@ -2,4 +2,5 @@ node_modules/
 secrets/*.json
 .cache
 package-lock.json
+*lock.*
 .docker_initialized
