@@ -2,16 +2,14 @@ var NodeHelper = require("node_helper");
 const { google } = require("googleapis");
 const promisify = require("util").promisify;
 const fs = require("fs");
-const path = require("path");
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
 const https = require("https");
 
-const CACHE_FILE_PATH = path.join(__dirname, ".cache");
-const SECRETS_PATH = path.join(__dirname, "secrets");
-const G_CREDENTIALS_FILE_PATH = path.join(SECRETS_PATH, "credentials.json");
-const G_TOKEN_FILE_PATH = path.join(SECRETS_PATH, "token.json");
+const CACHE_FILE_PATH = ".cache";
+const G_CREDENTIALS_FILE_PATH = "./secrets/credentials.json";
+const G_TOKEN_FILE_PATH = "./secrets/token.json";
 
 /** @typedef {import("google-auth-library").OAuth2ClientOptions} OAuth2ClientOptions */
 /** @typedef {import("google-auth-library").OAuth2Client} OAuth2Client */
