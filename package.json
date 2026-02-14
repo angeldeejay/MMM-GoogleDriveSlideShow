@@ -1,6 +1,6 @@
 {
   "name": "MMM-GoogleDriveSlideShow",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "MagicMirror² Module to display photos stored in Google Drive as a slideshow",
   "main": "MMM-GoogleDriveSlideShow.js",

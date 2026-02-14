@@ -90,6 +90,10 @@ module.exports = NodeHelper.create({
         let photoId = req.params.photoId;
         if ("random" === photoId) {
           photo = await this.getRandomPhoto();
+          if (!photo) {
+            next();
+            return;
+          }
           photoId = photo.id;
         }
         this.debug("Displaying photo with ID " + photoId);
@@ -174,6 +178,10 @@ module.exports = NodeHelper.create({
     ) {
       // Prevent two notifications to request image change to quickly (5 s mini between each)
       let photo = await this.getRandomPhoto();
+      if (!photo) {
+        setTimeout(() => this.broadcastRandomPhoto(), 1000);
+        return;
+      }
       await this.broadcastNewPhoto(photo);
       this.lastBroadcastDate = new Date();
     } else {
@@ -270,11 +278,12 @@ module.exports = NodeHelper.create({
 
   getRandomPhoto: async function () {
     let photos = await this.getPhotos();
+    if (!Array.isArray(photos) || photos.length === 0) return undefined;
+
     let randomIndex = Math.floor(Math.random() * photos.length);
-
-    console.log(photos, randomIndex);
-
     let randomPhoto = photos[randomIndex];
+    if (!randomPhoto || !randomPhoto["id"]) return undefined;
+
     this.cache.photos.splice(randomIndex, 1);
     // If all photos are sent, reload cache from file
     if (this.cache.photos.length === 0) {
