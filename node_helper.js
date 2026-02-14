@@ -2,14 +2,34 @@ var NodeHelper = require("node_helper");
 const { google } = require("googleapis");
 const promisify = require("util").promisify;
 const fs = require("fs");
+const path = require("path");
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
 const https = require("https");
 
-const CACHE_FILE_PATH = ".cache";
-const G_CREDENTIALS_FILE_PATH = "./secrets/credentials.json";
-const G_TOKEN_FILE_PATH = "./secrets/token.json";
+const CACHE_FILE_PATH = path.join(__dirname, ".cache");
+const SECRETS_PATH = path.join(__dirname, "secrets");
+const G_CREDENTIALS_FILE_PATH = path.join(SECRETS_PATH, "credentials.json");
+const G_TOKEN_FILE_PATH = path.join(SECRETS_PATH, "token.json");
+
+/** @typedef {import("google-auth-library").OAuth2ClientOptions} OAuth2ClientOptions */
+/** @typedef {import("google-auth-library").OAuth2Client} OAuth2Client */
+/** @typedef {import("google-auth-library").Credentials} Credentials */
+/**
+ * @typedef {Object} CredentialsInstalled
+ * @property {OAuth2ClientOptions['clientId']} client_id - The client ID.
+ * @property {OAuth2ClientOptions['projectId']} project_id - The project ID.
+ * @property {string|null|undefined} auth_uri - The authorization URI.
+ * @property {string|null|undefined} token_uri - The token URI.
+ * @property {string|null|undefined} auth_provider_x509_cert_url - The auth provider x509 cert URL.
+ * @property {OAuth2ClientOptions['clientSecret']} client_secret - The client secret.
+ * @property {Array<string>|null|undefined} redirect_uris - The redirect URIs.
+ */
+/**
+ * @typedef {Object} CredentialsFileData
+ * @property {CredentialsInstalled} installed - The installed credentials.
+ */
 
 module.exports = NodeHelper.create({
   config: {
@@ -164,31 +184,22 @@ module.exports = NodeHelper.create({
   },
 
   setupGoogleApiService: async function () {
-    let authDetails = await this.readAuthenticationFiles();
+    let { credentials, token } = await this.readAuthenticationFiles();
+    const {
+        installed: {
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uris: redirectUris,
+        },
+      } = credentials,
+      redirectUri = (redirectUris ?? [])[0];
 
-    const credsRoot =
-      authDetails.credentials.installed || authDetails.credentials.web;
-    if (!credsRoot) {
-      throw new Error(
-        "Invalid credentials.json: expected 'installed' or 'web' root key from Google OAuth client download.",
-      );
-    }
-    // eslint-disable-next-line camelcase
-    const { client_secret, client_id, redirect_uris } = credsRoot;
-
-    if (!client_id || !client_secret || !redirect_uris?.length) {
-      throw new Error(
-        "Invalid credentials.json: missing client_id/client_secret/redirect_uris.",
-      );
-    }
-
-    const oauth2Client = new google.auth.OAuth2(
-      client_id,
-      client_secret,
-      redirect_uris[0],
-    );
-    oauth2Client.setCredentials(authDetails.token);
-
+    const oauth2Client = new google.auth.OAuth2({
+      clientId,
+      clientSecret,
+      redirectUri,
+    });
+    oauth2Client.setCredentials(token);
     this.gDriveService = google.drive({ version: "v3", auth: oauth2Client });
   },
 
@@ -262,6 +273,9 @@ module.exports = NodeHelper.create({
   getRandomPhoto: async function () {
     let photos = await this.getPhotos();
     let randomIndex = Math.floor(Math.random() * photos.length);
+
+    console.log(photos, randomIndex);
+
     let randomPhoto = photos[randomIndex];
     this.cache.photos.splice(randomIndex, 1);
     // If all photos are sent, reload cache from file
@@ -283,7 +297,8 @@ module.exports = NodeHelper.create({
     // Check if need reload
     let needReload =
       !this.cache ||
-      (new Date().getTime() - this.cache.created) / 1000 >
+      !this.cache.created ||
+      (new Date().getTime() - (this.cache.created ?? 0)) / 1000 >
         this.config.refreshDriveDelayInSeconds;
 
     // (re)create the cache if missing or expired
